@@ -36,7 +36,7 @@ client.stream( 'statuses/filter', { track: '#bodatest' }, function( json ){
     var tweet = JSON.parse( json );
     if( tweet.text && tweet.user ){
         console.log( tweet.user.screen_name+': "'+tweet.text+'" ' + tweet.user.profile_image_url );
-        io.sockets.emit('message', { mensaje: tweet.text});
+        io.sockets.emit('message', { mensaje: tweet.text, profile_image_url:tweet.user.profile_image_url  });
 
         if( ++num === max ){
             console.log('----');
