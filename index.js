@@ -13,7 +13,7 @@ client.setAuth (
 
 var app = express();
 var port = 3700;
-var ip ='192.168.1.11';
+//var ip ='192.168.1.11';
 
 app.set('views', __dirname + '/tpl');
 app.set('view engine', "jade");
@@ -23,7 +23,7 @@ app.get("/", function(req, res){
 });
 
 app.use(express.static(__dirname + '/public'));
-var io = require('socket.io').listen(app.listen(port,ip));
+var io = require('socket.io').listen(app.listen(port)); //var io = require('socket.io').listen(app.listen(port, ip));
 
 console.log("Listening on port " + port);
 
