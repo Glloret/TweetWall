@@ -1,5 +1,7 @@
 var express = require("express");
 var client = require("twitter-api").createClient();
+var http= require('http');
+var fs = require('fs');
 
 var mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/tweetLogger');
@@ -66,7 +68,14 @@ client.stream( 'statuses/filter', { track: '#secrettest' }, function( json ){
         if (tweet.entities.media){
             console.log("Tweet con imagen");
             io.sockets.emit('message', { nombre: tweet.user.screen_name, mensaje: tweet.text, profile_image_url:tweet.user.profile_image_url, media_image:tweet.entities.media[0].media_url  });
-
+            var imgRe=/([-\w]+\.(?:jpg|gif|jpeg|png))/;
+            var imgfile = imgRe.exec(tweet.entities.media[0].media_url);
+            var filename= "./imgsDown/" + tweet.user.screen_name+ "-" + imgfile[0];
+            var file = fs.createWriteStream(filename);
+            var request = http.get(tweet.entities.media[0].media_url+":large", function (response){
+                response.pipe(file);
+            });
+         
         } else {
             console.log("Tweet sin imagen");
             io.sockets.emit('message', { nombre: tweet.user.screen_name, mensaje: tweet.text, profile_image_url:tweet.user.profile_image_url  });
