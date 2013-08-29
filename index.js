@@ -1,6 +1,28 @@
 var express = require("express");
 var client = require("twitter-api").createClient();
 
+var mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost/tweetLogger');
+
+var db = mongoose.connection;
+db.on('error', console.error.bind(console, 'connection error:'));
+db.once('open', function callback () {
+  // yay!
+  console.log('Conectado a MongoDB');
+});
+
+var tweetSchema= mongoose.Schema({
+    nombre: String,
+    mensaje: String,
+    userAvatar: String,
+    imagen: String,
+    timestamp: {type: Date, default: Date.now}
+
+});
+
+var TweetData = mongoose.model('TweetData', tweetSchema);
+
+
 // En este archivo están guardadas las claves de autentificación en al API de Twitter
 var clave =require('./claves.js').clave;
 
@@ -23,7 +45,8 @@ app.get("/", function(req, res){
 });
 
 app.use(express.static(__dirname + '/public'));
-var io = require('socket.io').listen(app.listen(port)); //var io = require('socket.io').listen(app.listen(port, ip));
+var io = require('socket.io').listen(app.listen(port)); 
+//var io = require('socket.io').listen(app.listen(port, ip));
 
 console.log("Listening on port " + port);
 
@@ -47,6 +70,11 @@ client.stream( 'statuses/filter', { track: '#secrettest' }, function( json ){
         } else {
             console.log("Tweet sin imagen");
             io.sockets.emit('message', { nombre: tweet.user.screen_name, mensaje: tweet.text, profile_image_url:tweet.user.profile_image_url  });
+            var tweetData = new TweetData({nombre: tweet.user.screen_name, mensaje: tweet.text, userAvatar:tweet.user.profile_image_url, imagen: "none" });
+            tweetData.save(function (err) {
+                if (err) { console.log(err)} // ...
+                console.log('Dato guardado');
+              });
         }
         //console.log (tweet);
         //io.sockets.emit('message', { mensaje: tweet.text, profile_image_url:tweet.user.profile_image_url  });
