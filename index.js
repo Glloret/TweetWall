@@ -1,18 +1,35 @@
+///////////////////////////////////////////////////////////////////////////////////
+//                      TWEETWALL
+///////////////////////////////////////////////////////////////////////////////////
+
+// Hashtag a Sequir
+var hashtagSeguir = '#secrettest';
+
+
+// PARÁMETROS DEL SERVIDOR IP Y PUERTO 
+// ( SI SE CAMBIAN AQUÍ HAY QUE CAMBIARLOS TB  EN "/public/tweet.js")
+var port = 3700;
+//var ip ='192.168.1.11';
+
+
+////////////////////////////////////////////////////////////////////////////////// 
 var express = require("express");
 var client = require("twitter-api").createClient();
 var http= require('http');
 var fs = require('fs');
-
 var mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/tweetLogger');
 
+// CONECTAR CON LA BASE DE DATOS
+// MongoDB en localhost con el puerto por defecto
+// Nombre BD: tweetLogger
+mongoose.connect('mongodb://localhost/tweetLogger'); 
 var db = mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error:'));
+db.on('error', console.error.bind(console, 'Error de conexión a MongoDB'));
 db.once('open', function callback () {
-  // yay!
   console.log('Conectado a MongoDB');
 });
 
+// FORMATO DE LOS DATOS A GUARDAR
 var tweetSchema= mongoose.Schema({
     nombre: String,
     mensaje: String,
@@ -21,7 +38,6 @@ var tweetSchema= mongoose.Schema({
     timestamp: {type: Date, default: Date.now}
 
 });
-
 var TweetData = mongoose.model('TweetData', tweetSchema);
 
 
@@ -35,9 +51,9 @@ client.setAuth (
     clave.requestsecret 
 );
 
+
 var app = express();
-var port = 3700;
-//var ip ='192.168.1.11';
+
 
 app.set('views', __dirname + '/tpl');
 app.set('view engine', "jade");
@@ -46,38 +62,40 @@ app.get("/", function(req, res){
     res.render("page");
 });
 
+// DIRECTORIO PARA FICHEROS "PÚBLICOS" DEL SERVIDOR CSS Y JS
 app.use(express.static(__dirname + '/public'));
+
+// SOCKET.IO CONFIGURACIÓN DE LOS WEB SOCKET
 var io = require('socket.io').listen(app.listen(port)); 
 //var io = require('socket.io').listen(app.listen(port, ip));
 
 console.log("Listening on port " + port);
 
-// var num = 0,
-//     max = 10;
+/////////////////////////////////////////////////////////////////////////////////
 
-client.stream( 'statuses/filter', { track: '#secrettest' }, function( json ){
+
+///////////////////////////////////////////////////////////////////
+client.stream( 'statuses/filter', { track: hashtagSeguir }, function( json ){
     var tweet = JSON.parse( json );
-    
-
     if( tweet.text && tweet.user ){
-        //console.log( tweet.user.screen_name+': "'+tweet.text+'" ' + tweet.user.profile_image_url );
-        
-        // Así se accede a las imagenes del post
-
-        //console.log (tweet.entities.media[0].media_url);
+          
+        // Tweets con imágenes
         if (tweet.entities.media){
-            console.log("Tweet con imagen");
+            //console.log("Tweet con imagen");
             io.sockets.emit('message', { nombre: tweet.user.screen_name, mensaje: tweet.text, profile_image_url:tweet.user.profile_image_url, media_image:tweet.entities.media[0].media_url  });
             var imgRe=/([-\w]+\.(?:jpg|gif|jpeg|png))/;
+
             var imgfile = imgRe.exec(tweet.entities.media[0].media_url);
+            // Nombre y ubicación de los archivos de imagen que se guardan.
             var filename= "./imgsDown/" + tweet.user.screen_name+ "-" + imgfile[0];
             var file = fs.createWriteStream(filename);
             var request = http.get(tweet.entities.media[0].media_url+":large", function (response){
                 response.pipe(file);
             });
          
+        // Tweets sólo texto
         } else {
-            console.log("Tweet sin imagen");
+            //console.log("Tweet sin imagen");
             io.sockets.emit('message', { nombre: tweet.user.screen_name, mensaje: tweet.text, profile_image_url:tweet.user.profile_image_url  });
             var tweetData = new TweetData({nombre: tweet.user.screen_name, mensaje: tweet.text, userAvatar:tweet.user.profile_image_url, imagen: "none" });
             tweetData.save(function (err) {
@@ -85,13 +103,6 @@ client.stream( 'statuses/filter', { track: '#secrettest' }, function( json ){
                 console.log('Dato guardado');
               });
         }
-        //console.log (tweet);
-        //io.sockets.emit('message', { mensaje: tweet.text, profile_image_url:tweet.user.profile_image_url  });
-
-        // if( ++num === max ){
-        //     console.log('----');
-        //     client.abort();
-        //}
     }
 } );
 
