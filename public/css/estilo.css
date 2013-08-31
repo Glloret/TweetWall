@@ -1,0 +1,39 @@
+#content {
+	width: 90%;
+	margin: auto;
+	padding:5px;
+	height:900px;
+	overflow-y:scroll;
+
+	
+}
+
+.tweet {
+	
+    border: solid 1px #999;
+    width: 90%;
+    margin: auto;
+    box-shadow: 2px 2px 5px gray;
+    border-radius: 8px;
+    padding:15px;
+    float:right;
+
+}
+.avatar {
+	float: left;
+	margin: 20px;
+	font-family: sans-serif;
+	font-size:18px;
+	color:blue;
+}
+.texto {
+	float: right;
+	font-size: 30px;
+	font-family: sans-serif;
+	widht: 80%;
+
+}
+.texto>img {
+	border-radius: 20px;
+	margin:10px;
+}
