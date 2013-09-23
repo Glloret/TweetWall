@@ -3,7 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////////
 
 // Hashtag a Sequir
-var hashtagSeguir = '#secrettest';
+var hashtagSeguir = '#MiFraseEnAM';
 
 
 // PARÁMETROS DEL SERVIDOR IP Y PUERTO 
@@ -76,6 +76,7 @@ console.log("Listening on port " + port);
 
 ///////////////////////////////////////////////////////////////////
 client.stream( 'statuses/filter', { track: hashtagSeguir }, function( json ){
+    console.log("tweet recibido");
     var tweet = JSON.parse( json );
     if( tweet.text && tweet.user ){
           
