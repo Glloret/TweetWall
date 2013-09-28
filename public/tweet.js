@@ -10,15 +10,16 @@ window.onload = function() {
         if(data.media_image) {
 
             html='<div class="tweet"> <div class="avatar"> <div class="avatar_img"> <img src="'+ data.profile_image_url +'"/> </div> <div class="nombre">'+ data.nombre +'</div> </div> <div class="texto">' + data.mensaje + '<img src="'+ data.media_image +':small "/> </div> </div>';
-            $('#content').append(html);
-            scroll = scroll + $('body>div>div.tweet:last-child').height()+300;
-            $('#content').animate({scrollTop: scroll },500);
+            //$('#content').prepend(html);
+            $(html).clone().hide().prependTo('#content').slideDown('slow');
+            //scroll = scroll + $('body>div>div.tweet:last-child').height()+300;
+            //$('#content').animate({scrollTop: scroll },500);
             
         } else if (data){
             html='<div class="tweet"> <div class="avatar"> <div class="avatar_img"> <img src="'+ data.profile_image_url +'"/> </div> <div class="nombre">'+ data.nombre +'</div> </div> <div class="texto">'+ data.mensaje + '</div> </div>';
-            $('#content').append(html);
-            scroll = scroll + $('body>div>div.tweet:last-child').height()+300;
-            $('#content').animate({scrollTop: scroll },500 );
+            $(html).clone().hide().prependTo('#content').slideDown('slow');
+            //scroll = scroll + $('body>div>div.tweet:last-child').height()+300;
+            //$('#content').animate({scrollTop: scroll },500 );
             
         } else {
             console.log("There is a problem:", data);
