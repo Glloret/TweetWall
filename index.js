@@ -6,6 +6,7 @@
 var hashtagSeguir = '#MiFraseEnAM';
 
 
+
 // PARÁMETROS DEL SERVIDOR IP Y PUERTO 
 // ( SI SE CAMBIAN AQUÍ HAY QUE CAMBIARLOS TB  EN "/public/tweet.js")
 var port = 3700;
@@ -18,6 +19,11 @@ var client = require("twitter-api").createClient();
 var http= require('http');
 var fs = require('fs');
 var mongoose = require('mongoose');
+
+// CREAR EL DIRECTORIO DE IMÁGENES SI NO EXISTE
+if (!fs.existsSync('./imgsDown')) {
+    fs.mkdirSync('./imgsDown');
+}
 
 // CONECTAR CON LA BASE DE DATOS
 // MongoDB en localhost con el puerto por defecto
