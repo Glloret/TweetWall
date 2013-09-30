@@ -2,10 +2,8 @@
 	width: 90%;
 	margin: auto;
 	padding:5px;
-	height:900px;
-	overflow-y:scroll;
+	height: 100%;
 
-	
 }
 
 .tweet {
