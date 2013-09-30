@@ -85,7 +85,8 @@ client.stream( 'statuses/filter', { track: hashtagSeguir }, function( json ){
     console.log("tweet recibido");
     var tweet = JSON.parse( json );
     if( tweet.text && tweet.user ){
-          
+        var tweetData;
+
         // Tweets con imágenes
         if (tweet.entities.media){
             //console.log("Tweet con imagen");
@@ -99,17 +100,20 @@ client.stream( 'statuses/filter', { track: hashtagSeguir }, function( json ){
             var request = http.get(tweet.entities.media[0].media_url+":large", function (response){
                 response.pipe(file);
             });
+
+            tweetData = new TweetData({nombre: tweet.user.screen_name, mensaje: tweet.text, userAvatar:tweet.user.profile_image_url, imagen: tweet.user.screen_name+ "-" + imgfile[0] });
          
         // Tweets sólo texto
         } else {
             //console.log("Tweet sin imagen");
             io.sockets.emit('message', { nombre: tweet.user.screen_name, mensaje: tweet.text, profile_image_url:tweet.user.profile_image_url  });
-            var tweetData = new TweetData({nombre: tweet.user.screen_name, mensaje: tweet.text, userAvatar:tweet.user.profile_image_url, imagen: "none" });
-            tweetData.save(function (err) {
+            tweetData = new TweetData({nombre: tweet.user.screen_name, mensaje: tweet.text, userAvatar:tweet.user.profile_image_url, imagen: "none" });
+        }
+
+        tweetData.save(function (err) {
                 if (err) { console.log(err)} // ...
                 console.log('Dato guardado');
               });
-        }
     }
 } );
 
