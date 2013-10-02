@@ -4,7 +4,8 @@
 
 // Hashtag a Sequir
 var hashtagSeguir = '#MiFraseEnAM';
-
+var imgDirectory = './public/imgsDown/';
+var imgBaseURL = 'imgsDown/';
 
 
 // PARÁMETROS DEL SERVIDOR IP Y PUERTO 
@@ -21,8 +22,8 @@ var fs = require('fs');
 var mongoose = require('mongoose');
 
 // CREAR EL DIRECTORIO DE IMÁGENES SI NO EXISTE
-if (!fs.existsSync('./imgsDown')) {
-    fs.mkdirSync('./imgsDown');
+if (!fs.existsSync(imgDirectory)) {
+    fs.mkdirSync(imgDirectory);
 }
 
 // CONECTAR CON LA BASE DE DATOS
@@ -90,19 +91,22 @@ client.stream( 'statuses/filter', { track: hashtagSeguir }, function( json ){
         // Tweets con imágenes
         if (tweet.entities.media){
             //console.log("Tweet con imagen");
-            io.sockets.emit('message', { nombre: tweet.user.screen_name, mensaje: tweet.text, profile_image_url:tweet.user.profile_image_url, media_image:tweet.entities.media[0].media_url  });
+   
             var imgRe=/([-\w]+\.(?:jpg|gif|jpeg|png))/;
 
             var imgfile = imgRe.exec(tweet.entities.media[0].media_url);
             // Nombre y ubicación de los archivos de imagen que se guardan.
-            var filename= "./imgsDown/" + tweet.user.screen_name+ "-" + imgfile[0];
+            var filename= imgDirectory + tweet.user.screen_name+ "-" + imgfile[0];
+            var image_url = imgBaseURL + tweet.user.screen_name+ "-" + imgfile[0];
             var file = fs.createWriteStream(filename);
+            file.on('finish', function() {
+                    io.sockets.emit('message', { nombre: tweet.user.screen_name, mensaje: tweet.text, profile_image_url:tweet.user.profile_image_url, media_image:image_url  });
+                });           
             var request = http.get(tweet.entities.media[0].media_url+":large", function (response){
                 response.pipe(file);
             });
-
-            tweetData = new TweetData({nombre: tweet.user.screen_name, mensaje: tweet.text, userAvatar:tweet.user.profile_image_url, imagen: tweet.user.screen_name+ "-" + imgfile[0] });
-         
+            console.log(filename);
+            tweetData = new TweetData({nombre: tweet.user.screen_name, mensaje: tweet.text, userAvatar:tweet.user.profile_image_url, imagen: tweet.user.screen_name+ "-" + imgfile[0] });       
         // Tweets sólo texto
         } else {
             //console.log("Tweet sin imagen");
