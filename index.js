@@ -84,7 +84,8 @@ function cargarTweet(tweet)
 
     var tweetData;
     var imgRe=/([-\w]+\.(?:jpg|gif|jpeg|png))/;
-    var avatarImgURL=imgBaseURL + imgRe.exec(tweet.user.profile_image_url)[0];
+    var s=tweet.user.profile_image_url;  
+    var avatarImgURL=imgBaseURL + s.substring(s.lastIndexOf('/')+1);
 
     // Tweets con imágenes
      if (tweet.entities.media){
@@ -124,9 +125,10 @@ client.stream( 'statuses/filter', { track: hashtagSeguir }, function( json ){
     console.log("tweet recibido");
     var tweet = JSON.parse( json );
     if( tweet.text && tweet.user ){
-        console.log(tweet.user.profile_image_url);
-        var imgRe=/([-\w]+\.(?:jpg|gif|jpeg|png))/;
-        var avatarImgFilename = imgDirectory + imgRe.exec(tweet.user.profile_image_url)[0];
+
+        var s = tweet.user.profile_image_url;
+        console.log(s.substring(s.lastIndexOf('/')+1));
+        var avatarImgFilename = imgDirectory + s.substring(s.lastIndexOf('/')+1);
         console.log(avatarImgFilename);
         if (!fs.existsSync(avatarImgFilename)) {
             var f = fs.createWriteStream(avatarImgFilename);                
