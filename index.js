@@ -3,7 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////////
 
 // Hashtag a Sequir
-var hashtagSeguir = '#Madrid';
+var hashtagSeguir = '#FaremCatalunyaIndependent';
 var imgDirectory = './public/imgsDown/';
 var imgBaseURL = 'imgsDown/';
 
@@ -79,6 +79,44 @@ var io = require('socket.io').listen(app.listen(port));
 console.log("Listening on port " + port);
 
 /////////////////////////////////////////////////////////////////////////////////
+function cargarTweet(tweet)
+{
+
+    var tweetData;
+    var imgRe=/([-\w]+\.(?:jpg|gif|jpeg|png))/;
+    var avatarImgURL=imgBaseURL + imgRe.exec(tweet.user.profile_image_url)[0];
+
+    // Tweets con imágenes
+     if (tweet.entities.media){
+        //console.log("Tweet con imagen");   
+
+        var imgfile = imgRe.exec(tweet.entities.media[0].media_url);
+        // Nombre y ubicación de los archivos de imagen que se guardan.
+        var attImgFilename= imgDirectory + tweet.user.screen_name+ "-" + imgfile[0];
+        var image_url = imgBaseURL + tweet.user.screen_name+ "-" + imgfile[0];
+        var file = fs.createWriteStream(attImgFilename);
+        file.on('finish', function() {
+                io.sockets.emit('message', { nombre: tweet.user.screen_name, mensaje: tweet.text, profile_image_url:avatarImgURL, media_image:image_url  });
+            });           
+        var request = http.get(tweet.entities.media[0].media_url+":large", function (response){
+            response.pipe(file);
+        });
+        console.log(attImgFilename);
+        tweetData = new TweetData({nombre: tweet.user.screen_name, mensaje: tweet.text, userAvatar:avatarImgURL, imagen: tweet.user.screen_name+ "-" + imgfile[0] });       
+    // Tweets sólo texto
+    } else {
+        //console.log("Tweet sin imagen");
+        io.sockets.emit('message', { nombre: tweet.user.screen_name, mensaje: tweet.text, profile_image_url:avatarImgURL  });
+        tweetData = new TweetData({nombre: tweet.user.screen_name, mensaje: tweet.text, userAvatar:avatarImgURL, imagen: "none" });
+    }
+
+    tweetData.save(function (err) {
+            if (err) { console.log(err)} // ...
+            console.log('Dato guardado');
+          });
+}
+
+
 
 
 ///////////////////////////////////////////////////////////////////
@@ -86,39 +124,23 @@ client.stream( 'statuses/filter', { track: hashtagSeguir }, function( json ){
     console.log("tweet recibido");
     var tweet = JSON.parse( json );
     if( tweet.text && tweet.user ){
-        var tweetData;
-
-        // Tweets con imágenes
-        if (tweet.entities.media){
-            //console.log("Tweet con imagen");
-   
-            var imgRe=/([-\w]+\.(?:jpg|gif|jpeg|png))/;
-
-            var imgfile = imgRe.exec(tweet.entities.media[0].media_url);
-            // Nombre y ubicación de los archivos de imagen que se guardan.
-            var filename= imgDirectory + tweet.user.screen_name+ "-" + imgfile[0];
-            var image_url = imgBaseURL + tweet.user.screen_name+ "-" + imgfile[0];
-            var file = fs.createWriteStream(filename);
-            file.on('finish', function() {
-                    io.sockets.emit('message', { nombre: tweet.user.screen_name, mensaje: tweet.text, profile_image_url:tweet.user.profile_image_url, media_image:image_url  });
-                });           
-            var request = http.get(tweet.entities.media[0].media_url+":large", function (response){
-                response.pipe(file);
+        console.log(tweet.user.profile_image_url);
+        var imgRe=/([-\w]+\.(?:jpg|gif|jpeg|png))/;
+        var avatarImgFilename = imgDirectory + imgRe.exec(tweet.user.profile_image_url)[0];
+        console.log(avatarImgFilename);
+        if (!fs.existsSync(avatarImgFilename)) {
+            var f = fs.createWriteStream(avatarImgFilename);                
+            var request = http.get(tweet.user.profile_image_url, function (response){
+                response.pipe(f);
             });
-            console.log(filename);
-            tweetData = new TweetData({nombre: tweet.user.screen_name, mensaje: tweet.text, userAvatar:tweet.user.profile_image_url, imagen: tweet.user.screen_name+ "-" + imgfile[0] });       
-        // Tweets sólo texto
+            f.on('finish', function(){
+                cargarTweet(tweet); } );
         } else {
-            //console.log("Tweet sin imagen");
-            io.sockets.emit('message', { nombre: tweet.user.screen_name, mensaje: tweet.text, profile_image_url:tweet.user.profile_image_url  });
-            tweetData = new TweetData({nombre: tweet.user.screen_name, mensaje: tweet.text, userAvatar:tweet.user.profile_image_url, imagen: "none" });
+            cargarTweet(tweet);
         }
 
-        tweetData.save(function (err) {
-                if (err) { console.log(err)} // ...
-                console.log('Dato guardado');
-              });
-    }
-} );
+        
+    } } );
+
 
 
