@@ -3,7 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////////
 
 // Hashtag a Sequir
-var hashtagSeguir = '#MiFraseEnAM';
+var hashtagSeguir = '#Madrid';
 var imgDirectory = './public/imgsDown/';
 var imgBaseURL = 'imgsDown/';
 

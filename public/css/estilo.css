@@ -1,3 +1,7 @@
+body {
+	background-color: lightgray;
+
+}
 #content {
 	width: 90%;
 	margin: auto;
@@ -7,11 +11,11 @@
 }
 
 .tweet {
-	
+	background-color: white;
     border: solid 1px #999;
-    width: 90%;
-    margin: auto;
-    box-shadow: 2px 2px 5px gray;
+    width: 100%;
+    margin-top: 10px;
+    box-shadow: 2px 2px 8px gray;
     border-radius: 8px;
     padding:15px;
     float:right;
@@ -34,4 +38,6 @@
 .texto>img {
 	border-radius: 20px;
 	margin:10px;
+	max-width: 30%;
+	float: right;
 }
