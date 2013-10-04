@@ -3,7 +3,7 @@
 ///////////////////////////////////////////////////////////////////////////////////
 
 // Hashtag a Sequir
-var hashtagSeguir = '#FaremCatalunyaIndependent';
+var hashtagSeguir = '#DíaMundialDeLaSonrisa';
 var imgDirectory = './public/imgsDown/';
 var imgBaseURL = 'imgsDown/';
 
@@ -79,23 +79,24 @@ var io = require('socket.io').listen(app.listen(port));
 console.log("Listening on port " + port);
 
 /////////////////////////////////////////////////////////////////////////////////
+
 function cargarTweet(tweet)
 {
 
     var tweetData;
     var imgRe=/([-\w]+\.(?:jpg|gif|jpeg|png))/;
     var s=tweet.user.profile_image_url;  
-    var avatarImgURL=imgBaseURL + s.substring(s.lastIndexOf('/')+1);
+    var avatarImgURL = imgBaseURL + "avatar_" + s.substring(s.lastIndexOf('/')+1);
 
     // Tweets con imágenes
      if (tweet.entities.media){
         //console.log("Tweet con imagen");   
-
         var imgfile = imgRe.exec(tweet.entities.media[0].media_url);
         // Nombre y ubicación de los archivos de imagen que se guardan.
         var attImgFilename= imgDirectory + tweet.user.screen_name+ "-" + imgfile[0];
         var image_url = imgBaseURL + tweet.user.screen_name+ "-" + imgfile[0];
         var file = fs.createWriteStream(attImgFilename);
+        // Cuando acabemos de guardar la imagen mandamos los datos para mostrar el tweet
         file.on('finish', function() {
                 io.sockets.emit('message', { nombre: tweet.user.screen_name, mensaje: tweet.text, profile_image_url:avatarImgURL, media_image:image_url  });
             });           
@@ -103,14 +104,18 @@ function cargarTweet(tweet)
             response.pipe(file);
         });
         console.log(attImgFilename);
+        // Datos del tweet para guardar luego en la base de datos
         tweetData = new TweetData({nombre: tweet.user.screen_name, mensaje: tweet.text, userAvatar:avatarImgURL, imagen: tweet.user.screen_name+ "-" + imgfile[0] });       
     // Tweets sólo texto
     } else {
         //console.log("Tweet sin imagen");
+        // Enviamos los datos para mostrar el tweet
         io.sockets.emit('message', { nombre: tweet.user.screen_name, mensaje: tweet.text, profile_image_url:avatarImgURL  });
+        // Datos para guardar más tarde en la base de datos
         tweetData = new TweetData({nombre: tweet.user.screen_name, mensaje: tweet.text, userAvatar:avatarImgURL, imagen: "none" });
     }
 
+    // Guardamos en la base de datos el tweet
     tweetData.save(function (err) {
             if (err) { console.log(err)} // ...
             console.log('Dato guardado');
@@ -126,10 +131,13 @@ client.stream( 'statuses/filter', { track: hashtagSeguir }, function( json ){
     var tweet = JSON.parse( json );
     if( tweet.text && tweet.user ){
 
+        // Nombre del archivo de imagen del avatar
         var s = tweet.user.profile_image_url;
         console.log(s.substring(s.lastIndexOf('/')+1));
-        var avatarImgFilename = imgDirectory + s.substring(s.lastIndexOf('/')+1);
-        console.log(avatarImgFilename);
+        var avatarImgFilename = imgDirectory + "avatar_" + s.substring(s.lastIndexOf('/')+1);
+        
+        // Si ya tenemos la imagen del avatar cargamos el tweet. Si no, 
+        // lo descargamos y cuando terminemos seguimos con la carga del tweet.
         if (!fs.existsSync(avatarImgFilename)) {
             var f = fs.createWriteStream(avatarImgFilename);                
             var request = http.get(tweet.user.profile_image_url, function (response){
@@ -142,7 +150,8 @@ client.stream( 'statuses/filter', { track: hashtagSeguir }, function( json ){
         }
 
         
-    } } );
+    } 
+} );
 
 
 
