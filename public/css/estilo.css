@@ -2,6 +2,14 @@ body {
 	background-color: lightgray;
 
 }
+
+#hashtag{
+	display: block;
+	text-align: center;
+
+}
+
+
 #content {
 	width: 90%;
 	margin: auto;
